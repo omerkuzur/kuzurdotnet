@@ -1,0 +1,26 @@
+name: Ömer KUZUR
+description: "Software Developer"
+url: "kuzur.net"
+
+
+github_username:  omerkuzur
+twitter_username: omerkuzur
+linkedin_username: omerkuzur
+medium_username:  kuzur
+email: omerkuzur@gmail.com
+
+
+avatar: yes
+avatar_img_path: "imgs/111.jpg"
+
+
+front_img: yes
+front_img_path: "imgs/background.jpg"
+
+
+favicon_img: yes
+favicon_img_path: "imgs/favicon.ico"
+
+
+markdown: kramdown
+permalink: pretty
