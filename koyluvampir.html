@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Köylü Vampir - Rol Dağıtıcı</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            max-width: 600px;
+            width: 95%;
+        }
+
+        h1, h2 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .setup-section, .game-section, .admin-section {
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input[type="number"], input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-size: 16px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 20px 0;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .role-emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+        }
+
+        .role-name {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .role-description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+
+        .player-counter {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .players-list {
+            text-align: left;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .player-input {
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        #allRoles {
+            margin-top: 20px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧛‍♂️ Köylü Vampir</h1>
+        
+        <!-- Kurulum Bölümü -->
+        <div id="setupSection" class="setup-section">
+            <div class="form-group">
+                <label for="playerCount">Oyuncu Sayısı:</label>
+                <input type="number" id="playerCount" min="4" max="20" value="8">
+            </div>
+            
+            <div class="form-group">
+                <label for="vampireCount">Vampir Sayısı:</label>
+                <input type="number" id="vampireCount" min="1" max="6" value="2">
+            </div>
+
+            <div class="form-group">
+                <label for="doctorCount">Doktor Sayısı:</label>
+                <input type="number" id="doctorCount" min="0" max="3" value="1">
+            </div>
+
+            <div id="playersSection" class="hidden">
+                <div class="form-group">
+                    <label>Oyuncu İsimleri (İsteğe bağlı):</label>
+                    <div id="playerInputs" class="players-list"></div>
+                </div>
+            </div>
+
+            <button onclick="setupGame()">Oyunu Kur</button>
+            <button onclick="togglePlayerNames()" id="nameToggle">İsim Gir</button>
+        </div>
+
+        <!-- Oyun Bölümü -->
+        <div id="gameSection" class="game-section hidden">
+            <div class="player-counter">
+                <span id="currentPlayerText">Oyuncu 1</span>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div>🧛‍♂️ Vampir</div>
+                    <div id="vampireCountDisplay">2</div>
+                </div>
+                <div class="stat-item">
+                    <div>👨‍🌾 Köylü</div>
+                    <div id="villagerCountDisplay">6</div>
+                </div>
+                <div class="stat-item">
+                    <div>⚕️ Doktor</div>
+                    <div id="doctorCountDisplay">1</div>
+                </div>
+                <div class="stat-item">
+                    <div>👁️ Görülen</div>
+                    <div id="progressStat">0/8</div>
+                </div>
+            </div>
+
+            <div class="role-card" id="roleCard" style="cursor: pointer;" onclick="showRole()">
+                <div id="hiddenRole">
+                    <div class="role-emoji">❓</div>
+                    <div class="role-name">Rolünü Görmek İçin Tıkla</div>
+                    <div class="role-description">Sadece sen görebilirsin</div>
+                </div>
+
+                <div id="revealedRole" class="hidden">
+                    <div class="role-emoji" id="roleEmoji">🧛‍♂️</div>
+                    <div class="role-name" id="roleName">Vampir</div>
+                    <div class="role-description" id="roleDescription">Geceleri köylüleri av!</div>
+                </div>
+            </div>
+
+            <button onclick="nextPlayer()" id="nextBtn" class="hidden">Sonraki Oyuncu</button>
+            <button onclick="restartGame()" id="restartBtn" class="hidden">Yeniden Başla</button>
+        </div>
+
+        <!-- Yönetici Bölümü -->
+        <div id="adminSection" class="admin-section hidden">
+            <h2>🔑 Yönetici Girişi</h2>
+            <input type="password" id="adminPassword" placeholder="Şifre">
+            <button onclick="checkAdmin()">Giriş</button>
+            <div id="allRoles" class="hidden"></div>
+        </div>
+    </div>
+
+    <script>
+        let gameData = {
+            totalPlayers: 8,
+            vampireCount: 2,
+            doctorCount: 1,
+            playerNames: [],
+            roles: [],
+            currentPlayer: 0,
+            useNames: false,
+            seenCount: 0
+        };
+
+        const roleDefinitions = {
+            vampir: {
+                emoji: '🧛‍♂️',
+                name: 'Vampir',
+                description: 'Geceleri köylüleri av! Diğer vampirlerle işbirliği yap.'
+            },
+            koylu: {
+                emoji: '👨‍🌾',
+                name: 'Köylü',
+                description: 'Vampirleri bul ve köyü kurtar! Gündüzleri dikkatli oyla.'
+            },
+            doktor: {
+                emoji: '⚕️',
+                name: 'Doktor',
+                description: 'Her gece bir kişiyi seçip koruyabilirsin.'
+            }
+        };
+
+        function togglePlayerNames() {
+            const playersSection = document.getElementById('playersSection');
+            const nameToggle = document.getElementById('nameToggle');
+            
+            if (playersSection.classList.contains('hidden')) {
+                playersSection.classList.remove('hidden');
+                nameToggle.textContent = 'İsim Kullanma';
+                gameData.useNames = true;
+                generatePlayerInputs();
+            } else {
+                playersSection.classList.add('hidden');
+                nameToggle.textContent = 'İsim Gir';
+                gameData.useNames = false;
+            }
+        }
+
+        function generatePlayerInputs() {
+            const container = document.getElementById('playerInputs');
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            
+            container.innerHTML = '';
+            for (let i = 1; i <= playerCount; i++) {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.placeholder = `Oyuncu ${i}`;
+                input.className = 'player-input';
+                input.id = `player${i}`;
+                container.appendChild(input);
+            }
+        }
+
+        function setupGame() {
+            const playerCount = parseInt(document.getElementById('playerCount').value);
+            const vampireCount = parseInt(document.getElementById('vampireCount').value);
+            const doctorCount = parseInt(document.getElementById('doctorCount').value);
+
+            if (playerCount < 4 || playerCount > 20) {
+                alert('Oyuncu sayısı 4-20 arasında olmalı!');
+                return;
+            }
+
+            if (vampireCount + doctorCount >= playerCount || vampireCount < 1) {
+                alert('Vampir + doktor sayısı oyuncu sayısından az olmalı!');
+                return;
+            }
+
+            gameData.totalPlayers = playerCount;
+            gameData.vampireCount = vampireCount;
+            gameData.doctorCount = doctorCount;
+            gameData.currentPlayer = 0;
+            gameData.seenCount = 0;
+
+            // İsimleri al
+            if (gameData.useNames) {
+                gameData.playerNames = [];
+                for (let i = 1; i <= playerCount; i++) {
+                    const name = document.getElementById(`player${i}`).value || `Oyuncu ${i}`;
+                    gameData.playerNames.push(name);
+                }
+            } else {
+                gameData.playerNames = Array.from({length: playerCount}, (_, i) => `Oyuncu ${i + 1}`);
+            }
+
+            // Rolleri dağıt
+            distributeRoles();
+
+            // UI'ı güncelle
+            document.getElementById('vampireCountDisplay').textContent = vampireCount;
+            document.getElementById('villagerCountDisplay').textContent = playerCount - vampireCount - doctorCount;
+            document.getElementById('doctorCountDisplay').textContent = doctorCount;
+            document.getElementById('progressStat').textContent = `0/${playerCount}`;
+            
+            document.getElementById('setupSection').classList.add('hidden');
+            document.getElementById('gameSection').classList.remove('hidden');
+            
+            updateCurrentPlayer();
+        }
+
+        function distributeRoles() {
+            const roles = [];
+            
+            // Vampirleri ekle
+            for (let i = 0; i < gameData.vampireCount; i++) {
+                roles.push('vampir');
+            }
+            
+            // Doktorları ekle
+            for (let i = 0; i < gameData.doctorCount; i++) {
+                roles.push('doktor');
+            }
+
+            // Köylüleri ekle
+            for (let i = 0; i < gameData.totalPlayers - gameData.vampireCount - gameData.doctorCount; i++) {
+                roles.push('koylu');
+            }
+            
+            // Rolleri karıştır (Fisher-Yates shuffle)
+            for (let i = roles.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [roles[i], roles[j]] = [roles[j], roles[i]];
+            }
+            
+            gameData.roles = roles;
+        }
+
+        function updateCurrentPlayer() {
+            const currentPlayerText = document.getElementById('currentPlayerText');
+            currentPlayerText.textContent = gameData.playerNames[gameData.currentPlayer];
+            
+            // Rol kartını sıfırla
+            document.getElementById('hiddenRole').classList.remove('hidden');
+            document.getElementById('revealedRole').classList.add('hidden');
+            document.getElementById('nextBtn').classList.add('hidden');
+        }
+
+        function showRole() {
+            const currentRole = gameData.roles[gameData.currentPlayer];
+            const roleData = roleDefinitions[currentRole];
+            
+            document.getElementById('roleEmoji').textContent = roleData.emoji;
+            document.getElementById('roleName').textContent = roleData.name;
+            document.getElementById('roleDescription').textContent = roleData.description;
+            
+            document.getElementById('hiddenRole').classList.add('hidden');
+            document.getElementById('revealedRole').classList.remove('hidden');
+            document.getElementById('nextBtn').classList.remove('hidden');
+
+            gameData.seenCount++;
+            updateProgress();
+        }
+
+        function nextPlayer() {
+            gameData.currentPlayer++;
+            
+            if (gameData.currentPlayer >= gameData.totalPlayers) {
+                // Oyun bitti
+                document.getElementById('nextBtn').classList.add('hidden');
+                document.getElementById('restartBtn').classList.remove('hidden');
+                document.getElementById('currentPlayerText').textContent = '🎉 Tüm roller dağıtıldı!';
+                
+                // Rol kartını gizle
+                document.getElementById('hiddenRole').classList.add('hidden');
+                document.getElementById('revealedRole').classList.add('hidden');
+
+                // Yönetici bölümünü göster
+                document.getElementById('adminSection').classList.remove('hidden');
+            } else {
+                updateCurrentPlayer();
+            }
+        }
+
+        function restartGame() {
+            document.getElementById('gameSection').classList.add('hidden');
+            document.getElementById('setupSection').classList.remove('hidden');
+            document.getElementById('adminSection').classList.add('hidden');
+            document.getElementById('allRoles').classList.add('hidden');
+            gameData.currentPlayer = 0;
+        }
+
+        function checkAdmin() {
+            const pass = document.getElementById('adminPassword').value;
+            if (pass === "1234") {
+                const list = gameData.playerNames.map((name, i) => {
+                    const roleKey = gameData.roles[i];
+                    const role = roleDefinitions[roleKey];
+                    return `<div>${name}: ${role.emoji} ${role.name}</div>`;
+                }).join("");
+                document.getElementById('allRoles').innerHTML = list;
+                document.getElementById('allRoles').classList.remove('hidden');
+            } else {
+                alert("Yanlış şifre!");
+            }
+        }
+
+        function updateProgress() {
+            const total = gameData.totalPlayers;
+            const seen = gameData.seenCount;
+            document.getElementById('progressStat').textContent = `${seen}/${total}`;
+        }
+
+        // Sayfa yüklendiğinde oyuncu input sayısını ayarla
+        document.getElementById('playerCount').addEventListener('input', function() {
+            if (gameData.useNames) {
+                generatePlayerInputs();
+            }
+        });
+    </script>
+</body>
+</html>
